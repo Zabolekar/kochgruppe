@@ -1,0 +1,184 @@
+body {
+  font-family: Calibri, Carlito, "Noto Sans";
+}
+
+#menubar {
+  padding: 5px;
+  margin-bottom: -1px;
+  border-bottom: 1px black solid;
+  border-collapse: collapse;
+  background-color: #ccddcc;
+}
+
+#status-bar {
+  padding: 5px;
+  background-color: #ccddcc;
+  margin-top: -1px;
+  border-top: 1px black solid;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+.text-button {
+  vertical-align: middle;
+  background-color: #cccccc;
+  height: 40px;
+  padding-left: 30px;
+  padding-right: 30px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.fill-button {
+  vertical-align: middle;
+  height: 40px;
+  width: 40px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+#cooks-button {
+  background-image: url('bucket.svg'), linear-gradient(#cccccc 0 30%, yellow 70% 100%)
+}
+
+#just-eats-button {
+  background-image: url('bucket.svg'),
+                    linear-gradient(#cccccc 0 30%, rgb(0,0,0,0) 70% 100%),
+                    linear-gradient(90deg, #b1a0c7 0% 25%, #c4d79b 25% 50%, #e26b0a 50% 75%, #00b0f0 75% 100%);
+}
+
+#absent-button {
+  background-image: url('bucket.svg'), linear-gradient(#cccccc 0 30%, white 70% 100%);
+}
+
+#worksheet {
+  width: 620px;
+  text-align: center;
+  border-collapse: collapse;
+  user-select: none;
+}
+
+#example {
+  border: 2px solid black;
+  border-collapse: collapse;
+}
+
+#worksheet td, #worksheet th, #example td {
+  border: 1px solid #666666;
+}
+
+#worksheet td, #example td {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+#worksheet td.odd-week {
+  background: #d9d9d9;
+}
+
+#worksheet tr:nth-of-type(5n) td:not(.row-error),
+#worksheet thead td,
+#worksheet th,
+#worksheet td.week {
+  border-bottom: 2px solid black;
+}
+
+#example tr:nth-of-type(1) {
+  font-weight: bold;
+  border: 2px solid black;
+}
+
+#worksheet col.dates {
+  border-right: 2px solid black;
+}
+
+#worksheet col.weeks {
+  border-left: 2px solid black;
+}
+
+#worksheet col.named0 { background: #b1a0c7; }
+#worksheet col.named1 { background: #b8cce4; }
+#worksheet col.named2 { background: #c4d79b; }
+#worksheet col.named3 { background: #e26b0a; }
+#worksheet col.named4 { background: #00b0f0; }
+#worksheet col.named5 { background: #da9694; }
+#worksheet col.named6 { background: #b9e7db; }
+#worksheet col.named7 { background: #f79646; }
+#worksheet col.named8 { background: #c5d9f1; }
+
+#example td.named0 { background: #b1a0c7; }
+#example td.named1 { background: #b8cce4; }
+#example td.named2 { background: #c4d79b; }
+
+#worksheet th,
+#worksheet td.selectable {
+  min-width: 75px;
+}
+
+#worksheet td.selectable input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  font-size: inherit;
+  display: block;
+  text-align: center;
+  outline: none;
+  background-color: inherit;
+  appearance: textfield;
+}
+
+#worksheet td.selectable:hover:not(.selected):not(.nothing) {
+  outline: 3px solid black;
+  outline-offset: -1px;
+}
+
+#worksheet td.cooks, #example tr.cooks {
+  background-color: yellow;
+}
+
+#worksheet td.absent, #example tr.absent {
+  background-color: white;
+}
+
+#worksheet td.selected {
+  outline: 3px dashed black;
+  outline-offset: -1px;
+}
+
+#worksheet td.nothing, #example td.note {
+  border: none;
+}
+
+#worksheet td.row-error {
+  border: none;
+  padding-left: 30px;
+  padding-right: 30px;
+  white-space: nowrap;
+  text-align: left;
+  font-weight: bold;
+}
+
+#rules, #help {
+  display: none;
+  position: absolute;
+  width: fit-content;
+  background-color: white;
+  border: 2px black solid;
+}
+
+#help {
+  left: 10%;
+  top: 10%;
+}
+
+#rules {
+  left: 15%;
+  top: 15%;
+}
+
+#hide-rules-button, #hide-help-button {
+	float: right;
+	border: 2px black solid;
+	margin: 2px;
+}

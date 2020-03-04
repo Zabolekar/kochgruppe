@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+   <meta charset="utf-8">
+   <title>Kochliste</title>
+   <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+   <script>$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
+</head>
+<body>
+   <script src="{{ url_for('static', filename='index.js') }}" defer></script>
+   <div id="menubar">
+      <button class="text-button" id="save-button">Speichern</button>
+      <button class="fill-button" id="just-eats-button" title="isst"></button>
+      <button class="fill-button" id="cooks-button" title="kocht"></button>
+      <button class="fill-button" id="absent-button" title="fehlt"></button>
+      <button class="text-button" id="show-rules-button">Regeln anzeigen</button>
+      <button class="text-button" id="show-help-button">Hilfe anzeigen</button>
+   </div>
+   <table id="worksheet"></table>
+   <div id="rules">
+      <button id="hide-rules-button">×</button>
+      <ol>
+         <b><li>Nachtisch!</li></b>
+         <b><li>Pünktlich kochen!</li></b>
+         <li>Austragen bis 8:30 Uhr am selben Tag, sonst nur nach persönlicher Absprache mit dem kochenden Wesen.</li>
+         <li>Mit Kochen ist der dran, der die wenigsten Punkte hat. Bei Gleichstand ist erst derjenige dran, der länger nicht gekocht hat.</li>
+         <li>Weiße Felder sind erst nach Absprache mit der betroffenen Person wieder farbig zu kennzeichnen.</li>
+         <li>Direkt nach dem Urlaub ist man nicht dran mit Kochen, es sei denn alle Mitesser kommen gleichzeitig aus dem Urlaub.</li>
+         <li>Jeder isst mit, wenn er (oder sie oder es) kocht.</li>
+      </ol>
+   </div>
+   <div id="help">
+      <button id="hide-help-button">×</button>
+      <ol>
+      <li>Wenn man auf eine nicht ausgewählte Zelle klickt, wird sie ausgewählt.</li>
+      <li>Wenn man auf eine ausgewählte Zelle klickt, wird sie nicht mehr ausgewählt.</li>
+      <li>Eine Zelle hat drei Zustände: "fehlt", "isst", "kocht":
+         <table id="example">
+            <tr><td class="named0">Karsten</td><td class="named1">Stefan</td><td class="named2">Roman</td></tr>
+            <tr class="absent"><td>fehlt</td><td></td><td></td></tr>
+            <tr><td class="named0">isst</td><td class="named1"></td><td class="named2"></td></tr>
+            <tr class="cooks"><td>kocht</td><td></td><td></td></tr>
+         </table>
+      </li>
+         <li>Wenn man auf einen der Eimer-Knöpfe klickt, wechseln alle ausgewählen Zellen in den entsprechenden Zustand.</li>
+         <li>Um Änderungen zu speichern, klickt man auf "Speichern".</li>
+         <li>Um Änderungen zu verwerfen, aktualisiert man die Seite.</li>
+         <li>(für Mobilgeräte nicht relevant) Wenn man auf eine Zelle mit Shift klickt, wechselt sie in den nächsten Zustand.</li>
+      </ol>
+ </div>
+   <div id="status-bar"></div>
+</body>
+</html>
