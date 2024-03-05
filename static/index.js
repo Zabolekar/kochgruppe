@@ -50,7 +50,7 @@ function initializeRow(row, today, entry) {
   for (const pair of entry) {
     let cell = row.insertCell();
     cell.classList.add("selectable");
-    cell.innerHTML = `<input type="number"></input>`;
+    cell.innerHTML = `<input type="text" inputmode="numeric"></input>`;
     let input = cell.lastChild;
     if (pair == undefined) {
       setAbsent(cell);
