@@ -40,6 +40,17 @@ function initializeHeader(header, names) {
   rowStatusesTopCell.classList.add("row-error");
 }
 
+let hasMouse = function () {
+  try {
+    document.createEvent("MouseEvent");
+    return true;
+  }
+  catch (e) {
+    console.log(e);
+    return false;
+  }
+}();
+
 function initializeRow(row, today, entry) {
   const weekday = getWeekday(today);
   let weekDayCell = row.insertCell();
@@ -50,7 +61,11 @@ function initializeRow(row, today, entry) {
   for (const pair of entry) {
     let cell = row.insertCell();
     cell.classList.add("selectable");
-    cell.innerHTML = `<input type="text" inputmode="numeric"></input>`;
+    if (hasMouse)
+      cell.innerHTML = `<input type="number"></input>`;
+    else
+      // workaround for the Samsung keyboard, where type="number" offers no way to enter the minus sign
+      cell.innerHTML = `<input type="text" inputmode="numeric"></input>`;
     let input = cell.lastChild;
     if (pair == undefined) {
       setAbsent(cell);
