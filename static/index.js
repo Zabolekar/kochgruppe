@@ -84,7 +84,7 @@ function initializeRow(row, today, entry) {
   displayRowStatus(rowStatusCell, sum);
 
   for (let input of row.querySelectorAll(".selectable input")) {
-    input.oninput = _ => {
+    input.oninput = () => {
       let sum = 0;
       for (let input of row.querySelectorAll(".selectable input")) {
         if (input.value != "")
@@ -365,22 +365,22 @@ let loadDate = new Date();
 window.onload = () => {
   loadDataFromServerIntoTable();
 
-  document.getElementById("save-button").onclick = _ => sendDataFromTableToServer();
+  document.getElementById("save-button").onclick = () => sendDataFromTableToServer();
 
   let rules = document.getElementById("rules");
   let help = document.getElementById("help");
-  let raiseRulesAboveHelp = _ => { rules.style["z-index"] = 3; help.style["z-index"] = 2 };
-  let raiseHelpAboveRules = _ => { rules.style["z-index"] = 2; help.style["z-index"] = 3 };
-  document.getElementById("show-rules-button").onclick = _ => { rules.style.display = "block"; raiseRulesAboveHelp() };
-  document.getElementById("hide-rules-button").onclick = _ => rules.style.display = "none";
-  document.getElementById("show-help-button").onclick = _ => { help.style.display = "block"; raiseHelpAboveRules() };
-  document.getElementById("hide-help-button").onclick = _ => help.style.display = "none";
+  let raiseRulesAboveHelp = () => { rules.style["z-index"] = 3; help.style["z-index"] = 2 };
+  let raiseHelpAboveRules = () => { rules.style["z-index"] = 2; help.style["z-index"] = 3 };
+  document.getElementById("show-rules-button").onclick = () => { rules.style.display = "block"; raiseRulesAboveHelp() };
+  document.getElementById("hide-rules-button").onclick = () => rules.style.display = "none";
+  document.getElementById("show-help-button").onclick = () => { help.style.display = "block"; raiseHelpAboveRules() };
+  document.getElementById("hide-help-button").onclick = () => help.style.display = "none";
   rules.onclick = raiseRulesAboveHelp;
   help.onclick = raiseHelpAboveRules;
 
-  document.getElementById("cooks-button").onclick = _ => getSelectedCells().forEach(setCooking);
-  document.getElementById("just-eats-button").onclick = _ => getSelectedCells().forEach(setJustEating);
-  document.getElementById("absent-button").onclick = _ => getSelectedCells().forEach(setAbsent);
+  document.getElementById("cooks-button").onclick = () => getSelectedCells().forEach(setCooking);
+  document.getElementById("just-eats-button").onclick = () => getSelectedCells().forEach(setJustEating);
+  document.getElementById("absent-button").onclick = () => getSelectedCells().forEach(setAbsent);
 
   refreshStatusBar();
   setInterval(refreshStatusBar, 5000);

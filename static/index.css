@@ -4,7 +4,7 @@ html, body {
 }
 
 body {
-  font-family: Calibri, Carlito, "Noto Sans";
+  font-family: Calibri, Carlito, "Noto Sans", sans-serif;
 }
 
 #menubar {
@@ -14,7 +14,7 @@ body {
   margin-bottom: -1px;
   border-bottom: 1px black solid;
   border-collapse: collapse;
-  background-color: #ccddcc;
+  background-color: #cdc;
 }
 
 #worksheet {
@@ -28,7 +28,7 @@ body {
   position: sticky;
   bottom: 0;
   padding: 5px;
-  background-color: #ccddcc;
+  background-color: #cdc;
   margin-top: -1px;
   border-top: 1px black solid;
   border-collapse: collapse;
@@ -37,7 +37,7 @@ body {
 
 .text-button {
   vertical-align: middle;
-  background-color: #cccccc;
+  background-color: #ccc;
   height: 40px;
   padding-left: 30px;
   padding-right: 30px;
@@ -55,17 +55,17 @@ body {
 }
 
 #cooks-button {
-  background-image: url('bucket.svg'), linear-gradient(#cccccc 0 30%, yellow 70% 100%)
+  background-image: url('bucket.svg'), linear-gradient(#ccc 0 30%, yellow 70% 100%)
 }
 
 #just-eats-button {
   background-image: url('bucket.svg'),
-                    linear-gradient(#cccccc 0 30%, rgb(0,0,0,0) 70% 100%),
+                    linear-gradient(#ccc 0 30%, rgb(0 0 0 / 0%) 70% 100%),
                     linear-gradient(90deg, #b1a0c7 0% 25%, #c4d79b 25% 50%, #e26b0a 50% 75%, #00b0f0 75% 100%);
 }
 
 #absent-button {
-  background-image: url('bucket.svg'), linear-gradient(#cccccc 0 30%, white 70% 100%);
+  background-image: url('bucket.svg'), linear-gradient(#ccc 0 30%, white 70% 100%);
 }
 
 #example {
@@ -74,7 +74,7 @@ body {
 }
 
 #worksheet td, #worksheet th, #example td {
-  border: 1px solid #666666;
+  border: 1px solid #666;
 }
 
 #worksheet td, #example td {
@@ -86,8 +86,8 @@ body {
   background: #d9d9d9;
 }
 
-#worksheet tr:nth-of-type(5n) td:not(.row-error),
 #worksheet thead td,
+#worksheet tr:nth-of-type(5n) td:not(.row-error),
 #worksheet th,
 #worksheet td.week {
   border-bottom: 2px solid black;
@@ -137,7 +137,7 @@ body {
   appearance: textfield;
 }
 
-#worksheet td.selectable:hover:not(.selected):not(.nothing) {
+#worksheet td.selectable:hover:not(.selected,.nothing) {
   outline: 3px solid black;
   outline-offset: -1px;
 }
