@@ -335,12 +335,9 @@ async function refreshStatusBar()
   }
 
   let lastEdited = await response.json();
-  if (lastEdited == null)
-  {
+  if (lastEdited == null) {
     statusBar.innerHTML = "Wir wissen nicht, wer die Tabelle zuletzt editiert hat.";
-  }
-  else
-  {
+  } else {
     let ip = lastEdited.ip;
     let date = new Date(lastEdited.date); // local German time in ISO format with time zone suffix
     let day = date.toLocaleDateString("de", {"day" : "numeric", "month" : "short"});
