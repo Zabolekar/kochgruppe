@@ -55,10 +55,10 @@ function initializeRow(row, today, entry) {
     cell.innerHTML = `<input type="text" inputmode="numeric"></input>`;
     let input = cell.lastChild;
     if (pair == undefined) {
+      sum = NaN;
       setAbsent(cell);
-    }
-    else {
-      sum += pair.score;
+    } else {
+      sum += parseInt(pair.score);
       input.value = pair.score;
       if (pair.state == "absent")
         setAbsent(cell);
@@ -89,8 +89,7 @@ function initializeRow(row, today, entry) {
     input.oninput = () => {
       let sum = 0;
       for (let input of row.querySelectorAll(".selectable input")) {
-        if (input.value != "")
-          sum += parseInt(input.value);
+        sum += parseInt(input.value);
       }
       displayRowStatus(rowStatusCell, sum);
     };
@@ -98,7 +97,9 @@ function initializeRow(row, today, entry) {
 }
 
 function displayRowStatus(cell, sum) {
-  if (sum == 0)
+  if (isNaN(sum))
+    cell.innerHTML = "nicht ausgefüllt"
+  else if (sum == 0)
     cell.innerHTML = "OK";
   else
     cell.innerHTML = `<mark>Ein Bug! Summe muss 0 sein, ist aber ${sum}.</mark>`;
@@ -190,9 +191,6 @@ function adjustStartDate(date) {
 }
 
 function adjustEndDate(date) {
-    // add ten days (why ten? because why not)
-    for (let i = 0; i < 10; i++)
-      incrementDate(date);
     // rewind until next Friday
     while (getWeekday(date) != "Fr")
       incrementDate(date);
@@ -243,7 +241,7 @@ function deserializeTable(data) {
       continue;
 
     const key = dateToKey(date);
-    let entry = data.entries[key] ?? new Array(names.length);
+    let entry = data.entries[key] ?? Array(names.length);
     let row = body.insertRow();
     row.setAttribute("data-date", key);
     row.setAttribute("data-row-index", rowIndex);
@@ -268,34 +266,25 @@ function serializeTable()
   let body = table.getElementsByTagName("tbody")[0];
   for (let row of body.children) {
     let date = row.getAttribute("data-date");
-    let rowHasData = false;
     let stateScorePairs = []
 
     for (let cell of row.querySelectorAll(".selectable")) {
       let state;
-      if (isAbsent(cell)) {
-        state = "absent";
-        if (cell.lastChild.value != "")
-          rowHasData = true;
-      }
-      else if (isCooking(cell)) {
+      if (isAbsent(cell))
+        state = "absent"
+      else if (isCooking(cell))
         state = "cooks";
-        rowHasData = true;
-      }
-      else {
+      else
         state = "justEats";
-        rowHasData = true;
-      }
-      let score = parseInt(cell.lastChild.value);
+      let score = cell.lastChild.value;
       stateScorePairs.push({state: state, score: score});
     }
 
-    if (rowHasData)
-      result.entries[date] = stateScorePairs;
+    result.entries[date] = stateScorePairs;
   }
 
   // in a partially-filled row, an empty cell contains "", which is parsed to NaN and then stringified to "null"
-  return JSON.stringify(result);
+  return result;
 }
 
 async function loadDataFromServerIntoTable() {
@@ -313,7 +302,7 @@ async function sendDataFromTableToServer() {
     let response = await fetch("data", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: serializeTable()
+      body: JSON.stringify(serializeTable())
     });
 
     if (response.ok) {
@@ -406,12 +395,66 @@ function moveCursor(key) {
   }
 }
 
+function refreshWeekButtons() {
+  let weeks = Array.from(document.querySelectorAll("#worksheet td.week")).map((cell) => +cell.innerHTML);
+  document.querySelector("#kw-add").innerHTML = Math.max(...weeks) + 1;
+  document.querySelector("#kw-drop").innerHTML = Math.min(...weeks);
+}
+
+function addWeek() {
+  let data = serializeTable();
+
+  let dates = Object.keys(data.entries).map(keyToDate);
+  dates.sort((a, b) => a - b);
+  if (dates.length == 0) {
+    let date = new Date();
+    const key = dateToKey(date);
+    data.entries[key] = undefined;
+  } else {
+    let date = new Date(dates[dates.length - 1]); // Friday
+    incrementDate(date) // Saturday
+    incrementDate(date) // Sunday
+    incrementDate(date) // Monday
+    const key = dateToKey(date);
+    data.entries[key] = undefined;
+  }
+
+  document.getElementById("worksheet").replaceChildren();
+  deserializeTable(data);
+  refreshWeekButtons();
+}
+
+function dropWeek() {
+  let data = serializeTable();
+
+  let dates = Object.keys(data.entries).map(keyToDate);
+  dates.sort((a, b) => a - b);
+  let date = new Date(dates[0]);
+
+  for (let i = 0; i < 5; i++) {
+    const key = dateToKey(date);
+    delete data.entries[key];
+    incrementDate(date);
+  }
+
+  document.getElementById("worksheet").replaceChildren();
+  deserializeTable(data);
+  refreshWeekButtons();
+}
+
 let loadDate = new Date();
 
 window.onload = () => {
-  loadDataFromServerIntoTable();
+  loadDataFromServerIntoTable().then(refreshWeekButtons);
 
-  document.getElementById("save-button").onclick = () => sendDataFromTableToServer();
+  document.getElementById("save-button").onclick = sendDataFromTableToServer;
+
+  document.getElementById("add-week-button").onclick = addWeek;
+  document.getElementById("drop-week-button").onclick = dropWeek;
+
+  document.getElementById("cooks-button").onclick = () => getSelectedCells().forEach(setCooking);
+  document.getElementById("just-eats-button").onclick = () => getSelectedCells().forEach(setJustEating);
+  document.getElementById("absent-button").onclick = () => getSelectedCells().forEach(setAbsent);
 
   let rules = document.getElementById("rules");
   let help = document.getElementById("help");
@@ -424,9 +467,7 @@ window.onload = () => {
   rules.onclick = raiseRulesAboveHelp;
   help.onclick = raiseHelpAboveRules;
 
-  document.getElementById("cooks-button").onclick = () => getSelectedCells().forEach(setCooking);
-  document.getElementById("just-eats-button").onclick = () => getSelectedCells().forEach(setJustEating);
-  document.getElementById("absent-button").onclick = () => getSelectedCells().forEach(setAbsent);
+  document.getElementById("more-button").onclick = () => alert("TODO");
 
   document.onkeydown = (e) => moveCursor(e.key);
 
