@@ -293,22 +293,9 @@ function serializeTable()
   return JSON.stringify(result);
 }
 
-function loadFromServer(address, onSuccess)
-{
-  let request = new XMLHttpRequest();
-  request.open("GET", address, true);
-  request.onload = function() {
-    if (this.status == 200)
-      onSuccess(this.response);
-    else
-      console.log(`address ${address} returns ${this.status}`);
-  };
-  request.onerror = () => console.log("connection error");
-  request.send();
-}
-
-function loadDataFromServerIntoTable() {
-  loadFromServer("data", (response) => deserializeTable(JSON.parse(response)));
+async function loadDataFromServerIntoTable() {
+  let response = await fetch("data");
+  deserializeTable(await response.json());
 }
 
 function sendDataFromTableToServer() {
