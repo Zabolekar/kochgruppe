@@ -294,57 +294,70 @@ function serializeTable()
 }
 
 async function loadDataFromServerIntoTable() {
+  // lack of error handling is intentional
   let response = await fetch("data");
   deserializeTable(await response.json());
 }
 
-function sendDataFromTableToServer() {
+async function sendDataFromTableToServer() {
   if (!confirm("Wirklich speichern?")) // TODO: bei Konflikten warnen! Statusleiste auch!
     return;
 
-  let request = new XMLHttpRequest();
-  request.open("POST", "data", true);
-  request.setRequestHeader("Content-Type", "application/json");
-  request.onreadystatechange = function () {
-    if (request.readyState == 4 /* DONE */)
-      if (request.status == 200)
-      {
-        alert("Gespeichert");
-        loadDate = new Date();
-        refreshStatusBar();
-      }
-      else
-      {
-        alert("Fehler beim Speichern!")
-      }
-  };
-  request.send(serializeTable());
+  try
+  {
+    let response = await fetch("data", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: serializeTable()
+    });
+
+    if (response.ok) {
+      alert("Gespeichert");
+      loadDate = new Date();
+      refreshStatusBar();
+    } else {
+      alert("Fehler beim Speichern! Vermutung: Server-Bug")
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Fehler beim Speichern! Vermutung: kein Internet")
+  }
 }
 
 let alreadyWarned = false;
-function refreshStatusBar()
+async function refreshStatusBar()
 {
-  loadFromServer("status", (response) => {
-    let statusBar = document.querySelector("#status-bar");
-    let lastEdited = JSON.parse(response);
-    if (lastEdited == null)
+  let statusBar = document.querySelector("#status-bar");
+
+  let response;
+  try
+  {
+    response = await fetch("status");
+    if (!response.ok)
+      return;
+  } catch (_) {
+    statusBar.innerHTML = "<b>Keine Internetverbindung!<b>";
+    return;
+  }
+
+  let lastEdited = await response.json();
+  if (lastEdited == null)
+  {
+    statusBar.innerHTML = "Wir wissen nicht, wer die Tabelle zuletzt editiert hat.";
+  }
+  else
+  {
+    let ip = lastEdited.ip;
+    let date = new Date(lastEdited.date); // local German time in ISO format with time zone suffix
+    let day = date.toLocaleDateString("de", {"day" : "numeric", "month" : "short"});
+    let time = date.toLocaleTimeString("de");
+    statusBar.innerHTML = `${ip} hat die Tabelle am ${day} um ${time} editiert.`;
+    if (!alreadyWarned && date > loadDate)
     {
-      statusBar.innerHTML = "Wir wissen nicht, wer die Tabelle zuletzt editiert hat.";
+      alert("Jemand anders hat die Tabelle eben überschrieben!");
+      alreadyWarned = true;
     }
-    else
-    {
-      let ip = lastEdited.ip;
-      let date = new Date(lastEdited.date); // local German time in ISO format with time zone suffix
-      let day = date.toLocaleDateString("de", {"day" : "numeric", "month" : "short"});
-      let time = date.toLocaleTimeString("de");
-      statusBar.innerHTML = `${ip} hat die Tabelle am ${day} um ${time} editiert.`;
-      if (!alreadyWarned && date > loadDate)
-      {
-        alert("Jemand anders hat die Tabelle eben überschrieben!");
-        alreadyWarned = true;
-      }
-    }
-  });
+  }
 }
 
 let loadDate = new Date();
