@@ -47,9 +47,11 @@ function initializeRow(row, today, entry) {
   const dateFormattedForTable = today.toLocaleDateString("de", {"day" : "numeric", "month" : "short"});
   row.insertCell().innerHTML = dateFormattedForTable.replace(" ", "&nbsp;");
   let sum = 0;
+  let colIndex = 0;
   for (const pair of entry) {
     let cell = row.insertCell();
     cell.classList.add("selectable");
+    cell.setAttribute("data-col-index", colIndex);
     cell.innerHTML = `<input type="text" inputmode="numeric"></input>`;
     let input = cell.lastChild;
     if (pair == undefined) {
@@ -65,7 +67,7 @@ function initializeRow(row, today, entry) {
       else
         setJustEating(cell);
     }
-    
+    colIndex++;
   }
   const week = getWeekOfYear(today);
   if (weekday == "Mo") { // TODO: handle year beginning
@@ -235,6 +237,7 @@ function deserializeTable(data) {
   adjustStartDate(startDate);
   adjustEndDate(endDate);
 
+  let rowIndex = 0
   for (let date = startDate; date <= endDate; incrementDate(date)) {
     if (isWeekend(date))
       continue;
@@ -242,8 +245,10 @@ function deserializeTable(data) {
     const key = dateToKey(date);
     let entry = data.entries[key] ?? new Array(names.length);
     let row = body.insertRow();
-    row.setAttribute("date", key);
+    row.setAttribute("data-date", key);
+    row.setAttribute("data-row-index", rowIndex);
     initializeRow(row, date, entry);
+    rowIndex++;
   }
 
   initializeFooter(table.createTFoot().insertRow(), names);
@@ -262,7 +267,7 @@ function serializeTable()
     result.names.push(cell.innerHTML);
   let body = table.getElementsByTagName("tbody")[0];
   for (let row of body.children) {
-    let date = row.getAttribute("date");
+    let date = row.getAttribute("data-date");
     let rowHasData = false;
     let stateScorePairs = []
 
@@ -360,6 +365,47 @@ async function refreshStatusBar()
   }
 }
 
+function moveCursor(key) {
+  let active = document.activeElement;
+  if (!active.matches("td.selectable input"))
+    return;
+
+  let cell = active.parentElement;
+  let row = cell.parentElement;
+  let tbody = row.parentElement;
+
+  let colIndex = +cell.getAttribute("data-col-index");
+  let rowIndex = +row.getAttribute("data-row-index");
+
+  switch (key)
+  {
+    case "ArrowDown":
+      let down = tbody.querySelector(`[data-row-index="${rowIndex + 1}"]`);
+      if (down != null) {
+        down.querySelector(`[data-col-index="${colIndex}"]`).lastChild.focus();
+      }
+      break;
+    case "ArrowUp":
+      let up = tbody.querySelector(`[data-row-index="${rowIndex - 1}"]`);
+      if (up != null) {
+        up.querySelector(`[data-col-index="${colIndex}"]`).lastChild.focus();
+      }
+      break;
+    case "ArrowLeft":
+      let left = row.querySelector(`[data-col-index="${colIndex - 1}"]`);
+      if (left != null) {
+        left.lastChild.focus();
+      }
+      break;
+    case "ArrowRight":
+      let right = row.querySelector(`[data-col-index="${colIndex + 1}"]`);
+      if (right != null) {
+        right.lastChild.focus();
+      }
+      break;
+  }
+}
+
 let loadDate = new Date();
 
 window.onload = () => {
@@ -381,6 +427,8 @@ window.onload = () => {
   document.getElementById("cooks-button").onclick = () => getSelectedCells().forEach(setCooking);
   document.getElementById("just-eats-button").onclick = () => getSelectedCells().forEach(setJustEating);
   document.getElementById("absent-button").onclick = () => getSelectedCells().forEach(setAbsent);
+
+  document.onkeydown = (e) => moveCursor(e.key);
 
   refreshStatusBar();
   setInterval(refreshStatusBar, 5000);
