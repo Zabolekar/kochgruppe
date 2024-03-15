@@ -69,7 +69,7 @@ function initializeRow(row, today, entry) {
     colIndex++;
   }
   const week = getWeekOfYear(today);
-  if (weekday == "Mo") { // TODO: handle year beginning
+  if (weekday == "Mo") {
     let weekCell = row.insertCell();
     weekCell.setAttribute("rowSpan", 5);
     weekCell.classList.add("week");
