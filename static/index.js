@@ -36,8 +36,7 @@ function initializeHeader(header, names) {
   }
   header.insertCell().innerHTML = "KW"
   let rowStatusesTopCell = header.insertCell();
-  rowStatusesTopCell.classList.add("nothing");
-  rowStatusesTopCell.classList.add("row-error");
+  rowStatusesTopCell.innerHTML = '<button class="cell-button" id="drop-week-button">KW&nbsp;<span id="kw-drop"></span>&nbsp;löschen</button>'
 }
 
 function initializeRow(row, today, entry) {
@@ -113,6 +112,8 @@ function initializeFooter(footer, names) {
     cell.outerHTML = `<th>${name}</th>`
   }
   footer.insertCell().classList.add("nothing");
+  let rowStatusesTopCell = footer.insertCell();
+  rowStatusesTopCell.innerHTML = '<button class="cell-button" id="add-week-button">KW&nbsp;<span id="kw-add"></span>&nbsp;hinzufügen</button>'
 }
 
 function flipSelection(cell) {
@@ -221,32 +222,31 @@ function deserializeTable(data) {
 
   initializeHeader(table.createTHead().insertRow(), names);
 
-  let body = table.createTBody();
-
   let dates = Object.keys(data.entries).map(keyToDate);
   dates.sort((a, b) => a - b);
-  if (dates.length == 0)
-  {
-    alert("No entries found!");
-    return;
-  }
-  let startDate = new Date(dates[0]);
-  let endDate = new Date(dates[dates.length - 1]);
-  adjustStartDate(startDate);
-  adjustEndDate(endDate);
+  if (dates.length == 0) {
+    alert("Es gibt keine Einträge!");
+  } else {
+    let body = table.createTBody();
 
-  let rowIndex = 0
-  for (let date = startDate; date <= endDate; incrementDate(date)) {
-    if (isWeekend(date))
-      continue;
+    let startDate = new Date(dates[0]);
+    let endDate = new Date(dates[dates.length - 1]);
+    adjustStartDate(startDate);
+    adjustEndDate(endDate);
 
-    const key = dateToKey(date);
-    let entry = data.entries[key] ?? Array(names.length);
-    let row = body.insertRow();
-    row.setAttribute("data-date", key);
-    row.setAttribute("data-row-index", rowIndex);
-    initializeRow(row, date, entry);
-    rowIndex++;
+    let rowIndex = 0
+    for (let date = startDate; date <= endDate; incrementDate(date)) {
+      if (isWeekend(date))
+        continue;
+
+      const key = dateToKey(date);
+      let entry = data.entries[key] ?? Array(names.length);
+      let row = body.insertRow();
+      row.setAttribute("data-date", key);
+      row.setAttribute("data-row-index", rowIndex);
+      initializeRow(row, date, entry);
+      rowIndex++;
+    }
   }
 
   initializeFooter(table.createTFoot().insertRow(), names);
@@ -264,6 +264,9 @@ function serializeTable()
   for (let cell of header.getElementsByTagName("th"))
     result.names.push(cell.innerHTML);
   let body = table.getElementsByTagName("tbody")[0];
+  if (body == undefined)
+    return result;
+
   for (let row of body.children) {
     let date = row.getAttribute("data-date");
     let stateScorePairs = []
@@ -321,7 +324,7 @@ async function sendDataFromTableToServer() {
 let alreadyWarned = false;
 async function refreshStatusBar()
 {
-  let statusBar = document.querySelector("#status-bar");
+  let statusBar = document.getElementById("status-bar");
 
   let response;
   try
@@ -394,8 +397,15 @@ function moveCursor(key) {
 
 function refreshWeekButtons() {
   let weeks = Array.from(document.querySelectorAll("#worksheet td.week")).map((cell) => +cell.innerHTML);
-  document.querySelector("#kw-add").innerHTML = Math.max(...weeks) + 1;
-  document.querySelector("#kw-drop").innerHTML = Math.min(...weeks);
+  if (weeks.length == 0) {
+    document.getElementById("kw-add").innerHTML = "";
+    document.getElementById("kw-drop").innerHTML = "";
+  } else {
+    document.getElementById("kw-add").innerHTML = Math.max(...weeks) + 1;
+    document.getElementById("kw-drop").innerHTML = Math.min(...weeks);
+  }
+  document.getElementById("add-week-button").onclick = addWeek;
+  document.getElementById("drop-week-button").onclick = dropWeek;
 }
 
 function addWeek() {
@@ -403,7 +413,7 @@ function addWeek() {
 
   let dates = Object.keys(data.entries).map(keyToDate);
   dates.sort((a, b) => a - b);
-  if (dates.length == 0) {
+  if (dates.length == 0) { // TODO: sicherstellen, dass über UI erreichbar
     let date = new Date();
     const key = dateToKey(date);
     data.entries[key] = undefined;
@@ -445,9 +455,6 @@ window.onload = () => {
   loadDataFromServerIntoTable().then(refreshWeekButtons);
 
   document.getElementById("save-button").onclick = sendDataFromTableToServer;
-
-  document.getElementById("add-week-button").onclick = addWeek;
-  document.getElementById("drop-week-button").onclick = dropWeek;
 
   document.getElementById("cooks-button").onclick = () => getSelectedCells().forEach(setCooking);
   document.getElementById("just-eats-button").onclick = () => getSelectedCells().forEach(setJustEating);
