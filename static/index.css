@@ -18,7 +18,6 @@ body {
 }
 
 #worksheet {
-  width: 620px; /* TODO: no magic */
   text-align: center;
   border-collapse: collapse;
   user-select: none;
@@ -130,7 +129,7 @@ body {
 
 #worksheet th,
 #worksheet td.selectable {
-  min-width: 75px;
+  width: 80px;
 }
 
 #worksheet td.selectable input {
