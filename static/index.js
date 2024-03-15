@@ -413,7 +413,7 @@ function addWeek() {
 
   let dates = Object.keys(data.entries).map(keyToDate);
   dates.sort((a, b) => a - b);
-  if (dates.length == 0) { // TODO: sicherstellen, dass über UI erreichbar
+  if (dates.length == 0) {
     let date = new Date();
     const key = dateToKey(date);
     data.entries[key] = undefined;
