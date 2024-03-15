@@ -14,9 +14,9 @@
       <button class="fill-button" id="just-eats-button" title="isst"></button>
       <button class="fill-button" id="cooks-button" title="kocht"></button>
       <button class="fill-button" id="absent-button" title="fehlt"></button>
+      <button class="text-button" id="show-template-button">Vorlage bearbeiten</button>
       <button class="text-button" id="show-rules-button">Regeln</button>
       <button class="text-button" id="show-help-button">Hilfe</button>
-      <button class="text-button" id="more-button">Mehr...</button>
    </div>
    <table id="worksheet"></table>
    <div id="rules">
@@ -50,7 +50,11 @@
          <li>Um Änderungen zu verwerfen, aktualisiert man die Seite.</li>
          <li>(für Mobilgeräte nicht relevant) Wenn man auf eine Zelle mit Shift klickt, wechselt sie in den nächsten Zustand.</li>
       </ol>
- </div>
+   </div>
+   <div id="template">
+      <button id="hide-template-button">×</button>
+      <table id="template-table"></table>
+   </div>
    <div id="status-bar"></div>
 </body>
 </html>

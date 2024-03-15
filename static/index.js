@@ -449,10 +449,26 @@ function dropWeek() {
   refreshWeekButtons();
 }
 
+function raiseFakeWindow(selectedName, allFakeWindows) {
+  let maxIndex = Object.keys(allFakeWindows).length + 1;
+  let currentIndex = document.getElementById(selectedName).style["z-index"];
+  if (currentIndex == maxIndex)
+    return; // nothing to do, already above all other windows
+  for (let name of allFakeWindows) {
+    let style = document.getElementById(name).style;
+    if (style["z-index"] == currentIndex)
+      style["z-index"] = maxIndex; // raise to the top
+    else if (style["z-index"] > currentIndex)
+      style["z-index"]--;
+    // and if it's smaller, leave unchanged
+  }
+}
+
 let loadDate = new Date();
 
 window.onload = () => {
   loadDataFromServerIntoTable().then(refreshWeekButtons);
+  // TODO: fill template
 
   document.getElementById("save-button").onclick = sendDataFromTableToServer;
 
@@ -460,18 +476,16 @@ window.onload = () => {
   document.getElementById("just-eats-button").onclick = () => getSelectedCells().forEach(setJustEating);
   document.getElementById("absent-button").onclick = () => getSelectedCells().forEach(setAbsent);
 
-  let rules = document.getElementById("rules");
-  let help = document.getElementById("help");
-  let raiseRulesAboveHelp = () => { rules.style["z-index"] = 3; help.style["z-index"] = 2 };
-  let raiseHelpAboveRules = () => { rules.style["z-index"] = 2; help.style["z-index"] = 3 };
-  document.getElementById("show-rules-button").onclick = () => { rules.style.display = "block"; raiseRulesAboveHelp() };
-  document.getElementById("hide-rules-button").onclick = () => rules.style.display = "none";
-  document.getElementById("show-help-button").onclick = () => { help.style.display = "block"; raiseHelpAboveRules() };
-  document.getElementById("hide-help-button").onclick = () => help.style.display = "none";
-  rules.onclick = raiseRulesAboveHelp;
-  help.onclick = raiseHelpAboveRules;
-
-  document.getElementById("more-button").onclick = () => alert("TODO");
+  let fakeWindowNames = ["rules", "help", "template"];
+  let zIndex = 2;
+  for (let name of fakeWindowNames) {
+    let window = document.getElementById(name);
+    window.style["z-index"] = zIndex;
+    zIndex++;
+    window.onclick = () => raiseFakeWindow(name, fakeWindowNames);
+    document.getElementById(`show-${name}-button`).onclick = () => { window.style.display = "block"; window.onclick(); };
+    document.getElementById(`hide-${name}-button`).onclick = () => window.style.display = "none";
+  }
 
   document.onkeydown = (e) => moveCursor(e.key);
 
