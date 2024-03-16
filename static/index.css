@@ -7,7 +7,7 @@ body {
   font-family: Calibri, Carlito, "Noto Sans", sans-serif;
 }
 
-#menubar {
+.menubar {
   position: sticky;
   top: 0;
   padding: 5px;
@@ -61,48 +61,43 @@ body {
   background-size: 100% 100%;
 }
 
-#cooks-button {
+#cooks-button, #template-cooks-button {
   background-image: url('bucket.svg'), linear-gradient(#ccc 0 30%, yellow 70% 100%)
 }
 
-#just-eats-button {
+#just-eats-button, #template-just-eats-button {
   background-image: url('bucket.svg'),
                     linear-gradient(#ccc 0 30%, rgb(0 0 0 / 0%) 70% 100%),
                     linear-gradient(90deg, #b1a0c7 0% 25%, #c4d79b 25% 50%, #e26b0a 50% 75%, #00b0f0 75% 100%);
 }
 
-#absent-button {
+#absent-button, #template-absent-button {
   background-image: url('bucket.svg'), linear-gradient(#ccc 0 30%, white 70% 100%);
 }
 
-#example {
+#example, #template {
   border: 2px solid black;
   border-collapse: collapse;
 }
 
-#worksheet td, #worksheet th, #example td {
+#worksheet td, #worksheet th, #template td, #template th, #example td, #example th {
   border: 1px solid #666;
 }
 
-#worksheet td, #example td {
+#worksheet td, #example td, #template td {
   padding-left: 10px;
   padding-right: 10px;
 }
 
-#worksheet td.odd-week {
+#worksheet td.odd-week, #template td.weekday {
   background: #d9d9d9;
 }
 
-#worksheet thead td,
+#worksheet thead td, #template thead td, 
 #worksheet tr:nth-of-type(5n) td:not(.row-error),
-#worksheet th,
+#worksheet th, #example th, #template th,
 #worksheet td.week {
   border-bottom: 2px solid black;
-}
-
-#example tr:nth-of-type(1) {
-  font-weight: bold;
-  border: 2px solid black;
 }
 
 #worksheet col.dates {
@@ -113,23 +108,29 @@ body {
   border-left: 2px solid black;
 }
 
-#worksheet col.named0 { background: #b1a0c7; }
-#worksheet col.named1 { background: #b8cce4; }
-#worksheet col.named2 { background: #c4d79b; }
-#worksheet col.named3 { background: #e26b0a; }
-#worksheet col.named4 { background: #00b0f0; }
-#worksheet col.named5 { background: #da9694; }
-#worksheet col.named6 { background: #b9e7db; }
-#worksheet col.named7 { background: #f79646; }
-#worksheet col.named8 { background: #c5d9f1; }
+#template col:nth-of-type(1) {
+  border-right: 2px solid black;
+}
 
-#example td.named0 { background: #b1a0c7; }
-#example td.named1 { background: #b8cce4; }
-#example td.named2 { background: #c4d79b; }
+/* worksheet, example, template */
+col.named0 { background: #b1a0c7; }
+col.named1 { background: #b8cce4; }
+col.named2 { background: #c4d79b; }
+col.named3 { background: #e26b0a; }
+col.named4 { background: #00b0f0; }
+col.named5 { background: #da9694; }
+col.named6 { background: #b9e7db; }
+col.named7 { background: #f79646; }
+col.named8 { background: #c5d9f1; }
 
 #worksheet th,
 #worksheet td.selectable {
   width: 80px;
+}
+
+#template th,
+#template td.selectable {
+  width: 60px;
 }
 
 #worksheet td.selectable input {
@@ -144,25 +145,26 @@ body {
   appearance: textfield;
 }
 
-#worksheet td.selectable:hover:not(.selected,.nothing) {
+td.selectable:hover:not(.selected) {
   outline: 3px solid black;
   outline-offset: -1px;
 }
 
-#worksheet td.cooks, #example tr.cooks {
+td.cooks {
   background-color: yellow;
 }
 
-#worksheet td.absent, #example tr.absent {
+/* worksheet, example, template */
+td.absent {
   background-color: white;
 }
 
-#worksheet td.selected {
+td.selected {
   outline: 3px dashed black;
   outline-offset: -1px;
 }
 
-#worksheet td.nothing, #example td.note {
+#worksheet td.nothing {
   border: none;
 }
 
@@ -175,7 +177,7 @@ body {
   font-weight: bold;
 }
 
-#rules, #help, #template {
+#rules, #help, #template-editor {
   display: none;
   position: absolute;
   width: fit-content;
@@ -183,22 +185,23 @@ body {
   border: 2px black solid;
 }
 
-#help {
-  left: 10%;
+#template-editor {
+  left: 5%;
   top: 10%;
+  padding: 2px;
 }
 
 #rules {
-  left: 15%;
-  top: 15%;
-}
-
-#template {
-  left: 20%;
+  left: 10%;
   top: 20%;
 }
 
-#hide-rules-button, #hide-help-button, #hide-template-button {
+#help {
+  left: 15%;
+  top: 30%;
+}
+
+#hide-rules-button, #hide-help-button, #hide-template-editor-button {
 	float: right;
 	border: 2px black solid;
 	margin: 2px;

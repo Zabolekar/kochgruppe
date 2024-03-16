@@ -27,16 +27,25 @@ function getWeekOfYear(date) {
   return 1 + Math.round(differenceDays / 7);
 }
 
+function insertNames(row, names) {
+  for (const name of names)
+    row.insertCell().outerHTML = `<th>${name}</th>`
+}
+
 function initializeHeader(header, names) {
-  header.insertCell().innerHTML = "WT"
-  header.insertCell().innerHTML = "Datum"
-  for (const name of names) {
-    const cell = header.insertCell();
-    cell.outerHTML = `<th>${name}</th>`
-  }
-  header.insertCell().innerHTML = "KW"
-  let rowStatusesTopCell = header.insertCell();
-  rowStatusesTopCell.innerHTML = '<button class="cell-button" id="drop-week-button">KW&nbsp;<span id="kw-drop"></span>&nbsp;löschen</button>'
+  header.insertCell().innerHTML = "WT";
+  header.insertCell().innerHTML = "Datum";
+  insertNames(header, names);
+  header.insertCell().innerHTML = "KW";
+  header.insertCell().innerHTML = '<button class="cell-button" id="drop-week-button">KW&nbsp;<span id="kw-drop"></span>&nbsp;löschen</button>';
+}
+
+function initializeFooter(footer, names) {
+  footer.insertCell().classList.add("nothing");
+  footer.insertCell().classList.add("nothing");
+  insertNames(footer, names);
+  footer.insertCell().classList.add("nothing");
+  footer.insertCell().innerHTML = '<button class="cell-button" id="add-week-button">KW&nbsp;<span id="kw-add"></span>&nbsp;hinzufügen</button>';
 }
 
 function initializeRow(row, today, entry) {
@@ -104,18 +113,6 @@ function displayRowStatus(cell, sum) {
     cell.innerHTML = `<mark>Ein Bug! Summe muss 0 sein, ist aber ${sum}.</mark>`;
 }
 
-function initializeFooter(footer, names) {
-  footer.insertCell().classList.add("nothing");
-  footer.insertCell().classList.add("nothing");
-  for (const name of names) {
-    let cell = footer.insertCell();
-    cell.outerHTML = `<th>${name}</th>`
-  }
-  footer.insertCell().classList.add("nothing");
-  let rowStatusesTopCell = footer.insertCell();
-  rowStatusesTopCell.innerHTML = '<button class="cell-button" id="add-week-button">KW&nbsp;<span id="kw-add"></span>&nbsp;hinzufügen</button>'
-}
-
 function flipSelection(cell) {
   if (cell.classList.contains("selected"))
     cell.classList.remove("selected")   
@@ -155,10 +152,26 @@ function cycleStates(cell) {
     setCooking(cell);
 }
 
+function cycleTemplateStates(cell) {
+  if (isAbsent(cell))
+    setJustEating(cell);
+  else
+    setAbsent(cell);
+}
+
 function onClickDispatcher(cell) {
   return event => {
     if (event.shiftKey)
       cycleStates(cell)
+    else
+      flipSelection(cell)
+  }
+}
+
+function onClickDispatcherTemplate(cell) {
+  return event => {
+    if (event.shiftKey)
+      cycleTemplateStates(cell)
     else
       flipSelection(cell)
   }
@@ -170,6 +183,14 @@ function getSelectableCells() {
 
 function getSelectedCells() {
   return document.querySelectorAll("#worksheet td.selected")
+}
+
+function getSelectableTemplateCells() {
+  return document.querySelectorAll("#template td.selectable")
+}
+
+function getSelectedTemplateCells() {
+  return document.querySelectorAll("#template td.selected")
 }
 
 function isWeekend(date) {
@@ -197,76 +218,125 @@ function adjustEndDate(date) {
       incrementDate(date);
 }
 
-function deserializeTable(data) {
-  let table = document.getElementById("worksheet");
-
-  // add first two columns
+function deserializeNames(names) {
+  let worksheet = document.getElementById("worksheet");
+  let template = document.getElementById("template");
+  
+  // add first two columns to the worksheet
   for (let s of ["weekdays", "dates"]) {
     let col = document.createElement("col");
     col.classList.add(s);
-    table.appendChild(col);
+    worksheet.appendChild(col);
   }
+
+  // and the weekdays column to the template
+  template.appendChild(document.createElement("col"));
 
   // name columns
-  const names = data.names;
-  for (let index in names) {
-    let col = document.createElement("col");
-    col.classList.add(`named${index % 9}`);  // 9 because there are 9 different column colors. If you change it, adjust CSS as well. 
-    table.appendChild(col);
-  }
-
-  // last column
-  let col = document.createElement("col");
-  col.classList.add("weeks");
-  table.appendChild(col);
-
-  initializeHeader(table.createTHead().insertRow(), names);
-
-  let dates = Object.keys(data.entries).map(keyToDate);
-  dates.sort((a, b) => a - b);
-  if (dates.length == 0) {
-    alert("Es gibt keine Einträge!");
-  } else {
-    let body = table.createTBody();
-
-    let startDate = new Date(dates[0]);
-    let endDate = new Date(dates[dates.length - 1]);
-    adjustStartDate(startDate);
-    adjustEndDate(endDate);
-
-    let rowIndex = 0
-    for (let date = startDate; date <= endDate; incrementDate(date)) {
-      if (isWeekend(date))
-        continue;
-
-      const key = dateToKey(date);
-      let entry = data.entries[key] ?? Array(names.length);
-      let row = body.insertRow();
-      row.setAttribute("data-date", key);
-      row.setAttribute("data-row-index", rowIndex);
-      initializeRow(row, date, entry);
-      rowIndex++;
+  for (let table of [worksheet, template])
+  {
+    for (let index in names) {
+      let col = document.createElement("col");
+      col.classList.add(`named${index % 9}`);  // 9 because there are 9 different column colors. If you change it, adjust CSS as well. 
+      table.appendChild(col);
     }
   }
 
-  initializeFooter(table.createTFoot().insertRow(), names);
+  // last worksheet column
+  let col = document.createElement("col");
+  col.classList.add("weeks");
+  worksheet.appendChild(col);
 
-  for (let cell of getSelectableCells()) {
-    cell.onclick = onClickDispatcher(cell);
-  }
+  initializeHeader(worksheet.querySelector("thead tr"), names);
+  initializeFooter(worksheet.querySelector("tfoot tr"), names);
+  insertNames(template.querySelector("thead tr"), names);
 }
 
-function serializeTable()
-{
-  let result = { names: [], entries: {} };
-  let table = document.getElementById("worksheet");
-  let header = table.getElementsByTagName("thead")[0];
-  for (let cell of header.getElementsByTagName("th"))
-    result.names.push(cell.innerHTML);
-  let body = table.getElementsByTagName("tbody")[0];
-  if (body == undefined)
-    return result;
+function deserializeWorksheet(entries) {
+  let keys = Object.keys(entries);
+  if (keys.length == 0) {
+    alert("Es gibt keine Einträge!");
+    return;
+  }
 
+  let entryLength = countNames(); // may be inelegant, but there is no other way if all the entries are undefined
+
+  let dates = keys.map(keyToDate);
+  dates.sort((a, b) => a - b);
+  let startDate = new Date(dates[0]);
+  let endDate = new Date(dates[dates.length - 1]);
+  adjustStartDate(startDate);
+  adjustEndDate(endDate);
+
+  let body = document.querySelector("#worksheet tbody");
+  let rowIndex = 0
+  for (let date = startDate; date <= endDate; incrementDate(date)) {
+    if (isWeekend(date))
+      continue;
+
+    const key = dateToKey(date);
+    let entry = entries[key] ?? Array(entryLength);
+    let row = body.insertRow();
+    row.setAttribute("data-date", key);
+    row.setAttribute("data-row-index", rowIndex);
+    initializeRow(row, date, entry);
+    rowIndex++;
+  }
+
+  for (let cell of getSelectableCells())
+    cell.onclick = onClickDispatcher(cell);
+}
+
+function deserializeTemplate(entries) {
+  let rows = document.querySelectorAll("#template tbody tr");
+  for (let rowIndex = 0; rowIndex < 5; rowIndex++) {
+    let entry = entries[rowIndex];
+    let row = rows[rowIndex];
+    row.setAttribute("data-template-row-index", rowIndex);
+    let colIndex = 0;
+    for (let state of entry) {
+      let cell = row.insertCell();
+      cell.classList.add("selectable");
+      cell.setAttribute("data-template-col-index", colIndex);
+      if (state == "absent")
+        setAbsent(cell);
+      else
+        setJustEating(cell);
+      colIndex++;
+    }
+  }
+  for (let cell of getSelectableTemplateCells())
+    cell.onclick = onClickDispatcherTemplate(cell);
+}
+
+function serializeTemplate() {
+  let template = [];
+  let body = document.querySelector("#template tbody");
+  for (let row of body.children) {
+    let rowData = [];
+    for (let cell of row.querySelectorAll(".selectable")) {
+      if (isAbsent(cell))
+        rowData.push("absent");
+      else
+        rowData.push("justEats");
+    }
+    template.push(rowData);
+  }
+  return template;
+}
+
+function countNames() {
+  return document.querySelectorAll("#worksheet thead th").length;
+}
+
+function serializeNames() {
+  return Array.from(document.querySelectorAll("#worksheet thead th")).map(cell => cell.innerHTML);
+}
+
+function serializeWorksheet() {
+  let worksheet = {};
+  
+  let body = document.querySelector("#worksheet tbody");
   for (let row of body.children) {
     let date = row.getAttribute("data-date");
     let stateScorePairs = []
@@ -283,20 +353,24 @@ function serializeTable()
       stateScorePairs.push({state: state, score: score});
     }
 
-    result.entries[date] = stateScorePairs;
+    worksheet[date] = stateScorePairs;
   }
 
   // in a partially-filled row, an empty cell contains "", which is parsed to NaN and then stringified to "null"
-  return result;
+  return worksheet;
 }
 
-async function loadDataFromServerIntoTable() {
+async function loadWorksheetAndTemplateFromServer() {
   // lack of error handling is intentional
   let response = await fetch("data");
-  deserializeTable(await response.json());
+  let data = await response.json();
+
+  deserializeNames(data.names);
+  deserializeWorksheet(data.worksheet);
+  deserializeTemplate(data.template);
 }
 
-async function sendDataFromTableToServer() {
+async function sendWorksheetAndTemplateToServer() {
   if (!confirm("Wirklich speichern?")) // TODO: bei Konflikten warnen! Statusleiste auch!
     return;
 
@@ -305,7 +379,7 @@ async function sendDataFromTableToServer() {
     let response = await fetch("data", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(serializeTable())
+      body: JSON.stringify({ names: serializeNames(), worksheet: serializeWorksheet(), template: serializeTemplate() })
     });
 
     if (response.ok) {
@@ -396,7 +470,7 @@ function moveCursor(key) {
 }
 
 function refreshWeekButtons() {
-  let weeks = Array.from(document.querySelectorAll("#worksheet td.week")).map((cell) => +cell.innerHTML);
+  let weeks = Array.from(document.querySelectorAll("#worksheet td.week")).map(cell => +cell.innerHTML);
   if (weeks.length == 0) {
     document.getElementById("kw-add").innerHTML = "";
     document.getElementById("kw-drop").innerHTML = "";
@@ -409,43 +483,45 @@ function refreshWeekButtons() {
 }
 
 function addWeek() {
-  let data = serializeTable();
+  let entries = serializeWorksheet();
 
-  let dates = Object.keys(data.entries).map(keyToDate);
+  let dates = Object.keys(entries).map(keyToDate);
   dates.sort((a, b) => a - b);
   if (dates.length == 0) {
     let date = new Date();
+    while (isWeekend(date))
+      incrementDate(date);
     const key = dateToKey(date);
-    data.entries[key] = undefined;
+    entries[key] = undefined;
   } else {
     let date = new Date(dates[dates.length - 1]); // Friday
     incrementDate(date) // Saturday
     incrementDate(date) // Sunday
     incrementDate(date) // Monday
     const key = dateToKey(date);
-    data.entries[key] = undefined;
+    entries[key] = undefined;
   }
 
-  document.getElementById("worksheet").replaceChildren();
-  deserializeTable(data);
+  document.querySelector("#worksheet tbody").replaceChildren();
+  deserializeWorksheet(entries);
   refreshWeekButtons();
 }
 
 function dropWeek() {
-  let data = serializeTable();
+  let entries = serializeWorksheet();
 
-  let dates = Object.keys(data.entries).map(keyToDate);
+  let dates = Object.keys(entries).map(keyToDate);
   dates.sort((a, b) => a - b);
   let date = new Date(dates[0]);
 
   for (let i = 0; i < 5; i++) {
     const key = dateToKey(date);
-    delete data.entries[key];
+    delete entries[key];
     incrementDate(date);
   }
 
-  document.getElementById("worksheet").replaceChildren();
-  deserializeTable(data);
+  document.querySelector("#worksheet tbody").replaceChildren();
+  deserializeWorksheet(entries);
   refreshWeekButtons();
 }
 
@@ -467,16 +543,18 @@ function raiseFakeWindow(selectedName, allFakeWindows) {
 let loadDate = new Date();
 
 window.onload = () => {
-  loadDataFromServerIntoTable().then(refreshWeekButtons);
-  // TODO: fill template
+  loadWorksheetAndTemplateFromServer().then(refreshWeekButtons);
 
-  document.getElementById("save-button").onclick = sendDataFromTableToServer;
+  document.getElementById("save-button").onclick = sendWorksheetAndTemplateToServer;
 
   document.getElementById("cooks-button").onclick = () => getSelectedCells().forEach(setCooking);
   document.getElementById("just-eats-button").onclick = () => getSelectedCells().forEach(setJustEating);
   document.getElementById("absent-button").onclick = () => getSelectedCells().forEach(setAbsent);
 
-  let fakeWindowNames = ["rules", "help", "template"];
+  document.getElementById("template-just-eats-button").onclick = () => getSelectedTemplateCells().forEach(setJustEating);
+  document.getElementById("template-absent-button").onclick = () => getSelectedTemplateCells().forEach(setAbsent);
+
+  let fakeWindowNames = ["rules", "help", "template-editor"];
   let zIndex = 2;
   for (let name of fakeWindowNames) {
     let window = document.getElementById(name);
@@ -487,7 +565,7 @@ window.onload = () => {
     document.getElementById(`hide-${name}-button`).onclick = () => window.style.display = "none";
   }
 
-  document.onkeydown = (e) => moveCursor(e.key);
+  document.onkeydown = e => moveCursor(e.key);
 
   refreshStatusBar();
   setInterval(refreshStatusBar, 5000);
