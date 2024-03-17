@@ -206,14 +206,12 @@ function dateToKey(date) {
   return date.toLocaleDateString("de", {"day": "2-digit", "month": "2-digit", "year": "numeric"});
 }
 
-function adjustStartDate(date) {
-  // rewind until previous Monday
+function rewindToLastMonday(date) {
   while (getWeekday(date) != "Mo")
     decrementDate(date);
 }
 
-function adjustEndDate(date) {
-    // rewind until next Friday
+function rewindToNextFriday(date) {
     while (getWeekday(date) != "Fr")
       incrementDate(date);
 }
@@ -265,8 +263,8 @@ function deserializeWorksheet(entries) {
   dates.sort((a, b) => a - b);
   let startDate = new Date(dates[0]);
   let endDate = new Date(dates[dates.length - 1]);
-  adjustStartDate(startDate);
-  adjustEndDate(endDate);
+  rewindToLastMonday(startDate);
+  rewindToNextFriday(endDate);
 
   let body = document.querySelector("#worksheet tbody");
   let rowIndex = 0
@@ -335,7 +333,7 @@ function serializeNames() {
 
 function serializeWorksheet() {
   let worksheet = {};
-  
+
   let body = document.querySelector("#worksheet tbody");
   for (let row of body.children) {
     let date = row.getAttribute("data-date");
@@ -487,19 +485,29 @@ function addWeek() {
 
   let dates = Object.keys(entries).map(keyToDate);
   dates.sort((a, b) => a - b);
+  let date;
   if (dates.length == 0) {
-    let date = new Date();
-    while (isWeekend(date))
-      incrementDate(date);
-    const key = dateToKey(date);
-    entries[key] = undefined;
+    date = new Date(); // today
+    if (isWeekend(date)) {
+      do { // rewind to next Monday
+        incrementDate(date);
+      } while (isWeekend(date))
+    } else {
+      rewindToLastMonday(date);
+    }
   } else {
-    let date = new Date(dates[dates.length - 1]); // Friday
+    date = new Date(dates[dates.length - 1]); // Friday
     incrementDate(date) // Saturday
     incrementDate(date) // Sunday
     incrementDate(date) // Monday
+  }
+    
+  let template = serializeTemplate()
+
+  for (let row of template) {
     const key = dateToKey(date);
-    entries[key] = undefined;
+    entries[key] = row.map(state => ({ state : state, score : ""}));
+    incrementDate(date);
   }
 
   document.querySelector("#worksheet tbody").replaceChildren();
