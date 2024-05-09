@@ -327,7 +327,7 @@ async function sendWorksheetAndTemplateToServer() {
     }
   } catch (error) {
     console.error(error);
-    alert("Fehler beim Speichern! Vermutung: kein Internet")
+    alert("Fehler beim Speichern! Vermutung: keine Verbindung zum Server")
   }
 }
 
@@ -343,7 +343,7 @@ async function refreshStatusBar()
     if (!response.ok)
       return;
   } catch (_) {
-    statusBar.innerHTML = "<b>Keine Internetverbindung!<b>";
+    statusBar.innerHTML = "<b>Keine Verbindung zum Server!<b>";
     return;
   }
 
