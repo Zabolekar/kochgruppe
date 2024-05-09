@@ -435,13 +435,13 @@ function dropWeek() {
   refreshWeekButtons();
 }
 
-function raiseFakeWindow(selectedName, allFakeWindows) {
-  let maxIndex = Object.keys(allFakeWindows).length + 1;
-  let currentIndex = document.getElementById(selectedName).style["z-index"];
+function raiseFakeWindow(window, allFakeWindows) {
+  let maxIndex = allFakeWindows.length + 1;
+  let currentIndex = window.style["z-index"];
   if (currentIndex == maxIndex)
     return; // nothing to do, already above all other windows
-  for (let name of allFakeWindows) {
-    let style = document.getElementById(name).style;
+  for (let other of allFakeWindows) {
+    let style = other.style;
     if (style["z-index"] == currentIndex)
       style["z-index"] = maxIndex; // raise to the top
     else if (style["z-index"] > currentIndex)
@@ -464,15 +464,14 @@ window.onload = () => {
   document.getElementById("template-just-eats-button").onclick = () => getSelectedTemplateCells().forEach(setJustEating);
   document.getElementById("template-absent-button").onclick = () => getSelectedTemplateCells().forEach(setAbsent);
 
-  let fakeWindowNames = ["rules", "help", "template-editor"];
+  let fakeWindows = ["rules", "help", "template-editor"].map(document.getElementById, document);
   let zIndex = 2;
-  for (let name of fakeWindowNames) {
-    let window = document.getElementById(name);
+  for (let window of fakeWindows) {
     window.style["z-index"] = zIndex;
     zIndex++;
-    window.onclick = () => raiseFakeWindow(name, fakeWindowNames);
-    document.getElementById(`show-${name}-button`).onclick = () => { window.style.display = "block"; window.onclick(); };
-    document.getElementById(`hide-${name}-button`).onclick = () => window.style.display = "none";
+    window.onclick = () => raiseFakeWindow(window, fakeWindows);
+    document.getElementById(`show-${window.id}-button`).onclick = () => { window.style.display = "block"; window.onclick(); };
+    document.getElementById(`hide-${window.id}-button`).onclick = () => window.style.display = "none";
   }
 
   document.onkeydown = e => moveCursor(e.key);
