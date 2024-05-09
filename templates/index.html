@@ -8,7 +8,8 @@
    <script>$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
 </head>
 <body>
-   <script src="{{ url_for('static', filename='index.js') }}" defer></script>
+   <script type="module" src="{{ url_for('static', filename='date.js') }}"></script>
+   <script type="module" src="{{ url_for('static', filename='index.js') }}" defer></script>
    <div class="menubar">
       <button class="text-button" id="save-button">Speichern</button>
       <button class="fill-button" id="just-eats-button" title="isst"></button>

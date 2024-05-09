@@ -1,31 +1,4 @@
-function getWeekday(date) {
-  return date.toLocaleDateString("de", {"weekday": "short"})
-}
-
-function incrementDate(date) {
-  date.setDate(date.getDate() + 1)
-}
-
-function decrementDate(date) {
-  date.setDate(date.getDate() - 1)
-}
-
-/*
-   The first week of the year is the week that contains the first Thursday of
-   the year, see ISO 8601.
-   See also public domain code at https://weeknumber.com/how-to/javascript
-*/
-function getWeekOfYear(date) {
-  function shiftToThursday (date) {
-    date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
-  }
-  let thisWeek = new Date(date.getTime());
-  shiftToThursday(thisWeek);
-  let firstWeek = new Date(thisWeek.getFullYear(), 0, 4); // January 4 is always in first week
-  shiftToThursday(firstWeek);
-  const differenceDays = (thisWeek.getTime() - firstWeek.getTime()) / 86400000;
-  return 1 + Math.round(differenceDays / 7);
-}
+import { getWeekday, getWeekOfYear, dateToKey, relevantDates, addWeekToSerialized, dropWeekFromSerialized, formatDateForTable } from "./date.js"
 
 function insertNames(row, names) {
   for (const name of names)
@@ -50,10 +23,8 @@ function initializeFooter(footer, names) {
 
 function initializeRow(row, today, entry) {
   const weekday = getWeekday(today);
-  let weekDayCell = row.insertCell();
-  weekDayCell.innerHTML = weekday;
-  const dateFormattedForTable = today.toLocaleDateString("de", {"day" : "numeric", "month" : "short"});
-  row.insertCell().innerHTML = dateFormattedForTable.replace(" ", "&nbsp;");
+  row.insertCell().innerHTML = weekday;
+  row.insertCell().innerHTML = formatDateForTable(today);
   let sum = 0;
   let colIndex = 0;
   for (const pair of entry) {
@@ -193,29 +164,6 @@ function getSelectedTemplateCells() {
   return document.querySelectorAll("#template td.selected")
 }
 
-function isWeekend(date) {
-  return ["Sa", "So"].includes(getWeekday(date))
-}
-
-function keyToDate(key) { // key is e.g. "20.04.2024", date is JS Date object
-  let match = key.match(/(\d{2})\.(\d{2})\.(\d{4})/);
-  return new Date(match[3], match[2] - 1, match[1]);
-}
-
-function dateToKey(date) {
-  return date.toLocaleDateString("de", {"day": "2-digit", "month": "2-digit", "year": "numeric"});
-}
-
-function rewindToLastMonday(date) {
-  while (getWeekday(date) != "Mo")
-    decrementDate(date);
-}
-
-function rewindToNextFriday(date) {
-    while (getWeekday(date) != "Fr")
-      incrementDate(date);
-}
-
 function deserializeNames(names) {
   let worksheet = document.getElementById("worksheet");
   let template = document.getElementById("template");
@@ -250,6 +198,10 @@ function deserializeNames(names) {
   insertNames(template.querySelector("thead tr"), names);
 }
 
+function countNames() {
+  return document.querySelectorAll("#worksheet thead th").length;
+}
+
 function deserializeWorksheet(entries) {
   let keys = Object.keys(entries);
   if (keys.length == 0) {
@@ -259,19 +211,9 @@ function deserializeWorksheet(entries) {
 
   let entryLength = countNames(); // may be inelegant, but there is no other way if all the entries are undefined
 
-  let dates = keys.map(keyToDate);
-  dates.sort((a, b) => a - b);
-  let startDate = new Date(dates[0]);
-  let endDate = new Date(dates[dates.length - 1]);
-  rewindToLastMonday(startDate);
-  rewindToNextFriday(endDate);
-
   let body = document.querySelector("#worksheet tbody");
   let rowIndex = 0
-  for (let date = startDate; date <= endDate; incrementDate(date)) {
-    if (isWeekend(date))
-      continue;
-
+  for (let date of relevantDates(keys)) {
     const key = dateToKey(date);
     let entry = entries[key] ?? Array(entryLength);
     let row = body.insertRow();
@@ -321,10 +263,6 @@ function serializeTemplate() {
     template.push(rowData);
   }
   return template;
-}
-
-function countNames() {
-  return document.querySelectorAll("#worksheet thead th").length;
 }
 
 function serializeNames() {
@@ -482,34 +420,8 @@ function refreshWeekButtons() {
 
 function addWeek() {
   let entries = serializeWorksheet();
-
-  let dates = Object.keys(entries).map(keyToDate);
-  dates.sort((a, b) => a - b);
-  let date;
-  if (dates.length == 0) {
-    date = new Date(); // today
-    if (isWeekend(date)) {
-      do { // rewind to next Monday
-        incrementDate(date);
-      } while (isWeekend(date))
-    } else {
-      rewindToLastMonday(date);
-    }
-  } else {
-    date = new Date(dates[dates.length - 1]); // Friday
-    incrementDate(date) // Saturday
-    incrementDate(date) // Sunday
-    incrementDate(date) // Monday
-  }
-    
-  let template = serializeTemplate()
-
-  for (let row of template) {
-    const key = dateToKey(date);
-    entries[key] = row.map(state => ({ state : state, score : ""}));
-    incrementDate(date);
-  }
-
+  const template = serializeTemplate();
+  addWeekToSerialized(entries, template);
   document.querySelector("#worksheet tbody").replaceChildren();
   deserializeWorksheet(entries);
   refreshWeekButtons();
@@ -517,17 +429,7 @@ function addWeek() {
 
 function dropWeek() {
   let entries = serializeWorksheet();
-
-  let dates = Object.keys(entries).map(keyToDate);
-  dates.sort((a, b) => a - b);
-  let date = new Date(dates[0]);
-
-  for (let i = 0; i < 5; i++) {
-    const key = dateToKey(date);
-    delete entries[key];
-    incrementDate(date);
-  }
-
+  dropWeekFromSerialized(entries);
   document.querySelector("#worksheet tbody").replaceChildren();
   deserializeWorksheet(entries);
   refreshWeekButtons();
