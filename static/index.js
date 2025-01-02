@@ -411,8 +411,8 @@ function refreshWeekButtons() {
     document.getElementById("kw-add").innerHTML = "";
     document.getElementById("kw-drop").innerHTML = "";
   } else {
-    document.getElementById("kw-add").innerHTML = Math.max(...weeks) + 1;
-    document.getElementById("kw-drop").innerHTML = Math.min(...weeks);
+    document.getElementById("kw-add").innerHTML = weeks[weeks.length - 1] + 1;
+    document.getElementById("kw-drop").innerHTML = weeks[0];
   }
   document.getElementById("add-week-button").onclick = addWeek;
   document.getElementById("drop-week-button").onclick = dropWeek;
