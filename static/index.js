@@ -43,6 +43,8 @@ function initializeRow(row, today, entry) {
         setAbsent(cell);
       else if (pair.state == "cooks")
         setCooking(cell);
+      else if (pair.state == "unsure")
+        setUnsure(cell);
       else
         setJustEating(cell);
     }
@@ -91,6 +93,10 @@ function flipSelection(cell) {
     cell.classList.add("selected")
 }
 
+function isJustEating(cell) {
+    return cell.classList.contains("justEats"); // currently ignored by CSS
+}
+
 function isCooking(cell) {
   return cell.classList.contains("cooks");
 }
@@ -99,35 +105,50 @@ function isAbsent(cell) {
   return cell.classList.contains("absent");
 }
 
+function isUnsure(cell) {
+  return cell.classList.contains("unsure");
+}
+
 function setJustEating(cell) {
-  cell.classList.remove("cooks");
-  cell.classList.remove("absent");
+  cell.classList.add("justEats");
+  cell.classList.remove("cooks", "absent", "unsure");
 }
 
 function setCooking(cell) {
   cell.classList.add("cooks");
-  cell.classList.remove("absent");
+  cell.classList.remove("justEats", "absent", "unsure");
 }
 
 function setAbsent(cell) {
-  cell.classList.remove("cooks");
   cell.classList.add("absent");
+  cell.classList.remove("justEats", "cooks", "unsure");
+}
+
+function setUnsure(cell) {
+  cell.classList.add("unsure");
+  cell.classList.remove("justEats", "cooks", "absent");
 }
 
 function cycleStates(cell) {
-  if (isCooking(cell))
+  // just eats -> cooks -> absent -> unsure
+  if (isJustEating(cell))
+    setCooking(cell);
+  else if (isCooking(cell))
     setAbsent(cell);
   else if (isAbsent(cell))
-    setJustEating(cell);
+    setUnsure(cell);
   else
-    setCooking(cell);
+    setJustEating(cell);
 }
 
 function cycleTemplateStates(cell) {
-  if (isAbsent(cell))
-    setJustEating(cell);
-  else
+  // just eats -> absent -> unsure
+  if (isJustEating(cell))
     setAbsent(cell);
+  else if (isAbsent(cell))
+    setUnsure(cell);
+  else
+    setJustEating(cell);
 }
 
 function onClickDispatcher(cell) {
@@ -240,6 +261,8 @@ function deserializeTemplate(entries) {
       cell.setAttribute("data-template-col-index", colIndex);
       if (state == "absent")
         setAbsent(cell);
+      else if (state == "unsure")
+        setUnsure(cell);
       else
         setJustEating(cell);
       colIndex++;
@@ -257,8 +280,10 @@ function serializeTemplate() {
     for (let cell of row.querySelectorAll(".selectable")) {
       if (isAbsent(cell))
         rowData.push("absent");
+      else if (isUnsure(cell))
+        rowData.push("unsure");
       else
-        rowData.push("justEats");
+        rowData.push("justEating");
     }
     template.push(rowData);
   }
@@ -283,6 +308,8 @@ function serializeWorksheet() {
         state = "absent"
       else if (isCooking(cell))
         state = "cooks";
+      else if (isUnsure(cell))
+        state = "unsure";
       else
         state = "justEats";
       let score = cell.lastChild.value;
@@ -460,9 +487,11 @@ window.onload = () => {
   document.getElementById("cooks-button").onclick = () => getSelectedCells().forEach(setCooking);
   document.getElementById("just-eats-button").onclick = () => getSelectedCells().forEach(setJustEating);
   document.getElementById("absent-button").onclick = () => getSelectedCells().forEach(setAbsent);
+  document.getElementById("unsure-button").onclick = () => getSelectedCells().forEach(setUnsure);
 
   document.getElementById("template-just-eats-button").onclick = () => getSelectedTemplateCells().forEach(setJustEating);
   document.getElementById("template-absent-button").onclick = () => getSelectedTemplateCells().forEach(setAbsent);
+  document.getElementById("template-unsure-button").onclick = () => getSelectedTemplateCells().forEach(setUnsure);
 
   let fakeWindows = ["rules", "help", "template-editor"].map(document.getElementById, document);
   let zIndex = 2;

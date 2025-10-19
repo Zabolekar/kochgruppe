@@ -75,6 +75,10 @@ body {
   background-image: url('bucket.svg'), linear-gradient(#ccc 0 30%, white 70% 100%);
 }
 
+#unsure-button, #template-unsure-button {
+  background-image: url('bucket.svg'), linear-gradient(#ccc 30%, rgb(0 0 0 / 0%) 70% 100%), repeating-linear-gradient(135deg, #888 0% 5%, white 5% 10%);
+}
+
 #example, #template {
   border: 2px solid black;
   border-collapse: collapse;
@@ -157,6 +161,11 @@ td.cooks {
 /* worksheet, example, template */
 td.absent {
   background-color: white;
+}
+
+td.unsure {
+  background-image: url('pattern.svg');
+  background-repeat: repeat;
 }
 
 td.selected {

@@ -15,6 +15,7 @@
       <button class="fill-button" id="just-eats-button" title="isst"></button>
       <button class="fill-button" id="cooks-button" title="kocht"></button>
       <button class="fill-button" id="absent-button" title="fehlt"></button>
+      <button class="fill-button" id="unsure-button" title="unsicher"></button>
       <button class="text-button" id="show-template-editor-button">Vorlage bearbeiten</button>
       <button class="text-button" id="show-rules-button">Regeln</button>
       <button class="text-button" id="show-help-button">Hilfe</button>
@@ -47,16 +48,17 @@
       <ol>
       <li>Wenn man auf eine nicht ausgewählte Zelle klickt, wird sie ausgewählt.</li>
       <li>Wenn man auf eine ausgewählte Zelle klickt, wird sie nicht mehr ausgewählt.</li>
-      <li>Eine Zelle hat drei Zustände: "fehlt", "isst", "kocht":
+      <li>Eine Zelle hat vier Zustände: "kocht", "fehlt", "isst", "unsicher":
          <table id="example">
             <thead>
                <tr><th>Karsten</th><th>Stefan</th><th>Roman</th></tr>
             </thead>
                <col class="named0"><col class="named1"><col class="named2">
             <tbody>
-               <tr><td class="absent">fehlt</td><td class="absent"></td><td class="absent"></td></tr>
                <tr><td>isst</td><td></td><td></td></tr>
                <tr><td class="cooks">kocht</td><td class="cooks"></td><td class="cooks"></td></tr>
+               <tr><td class="absent">fehlt</td><td class="absent"></td><td class="absent"></td></tr>
+               <tr><td class="unsure">unsicher</td><td class="unsure"></td><td class="unsure"></td></tr>
             </tbody>
          </table>
       </li>
@@ -70,6 +72,7 @@
       <div class="menubar">
          <button class="fill-button" id="template-just-eats-button" title="isst"></button>
          <button class="fill-button" id="template-absent-button" title="fehlt"></button>
+         <button class="fill-button" id="template-unsure-button" title="unsicher"></button>
          <button id="hide-template-editor-button">×</button>
       </div>
       <table id="template">
