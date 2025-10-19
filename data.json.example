@@ -1,0 +1,40 @@
+{
+  "names": [
+    "Max",
+    "Erika"
+  ],
+  "template": [
+    [
+      "absent",
+      "justEating"
+    ],
+    [
+      "justEating",
+      "justEating"
+    ],
+    [
+      "absent",
+      "absent"
+    ],
+    [
+      "justEating",
+      "justEating"
+    ],
+    [
+      "unsure",
+      "absent"
+    ]
+  ],
+  "worksheet": {
+    "20.10.2025": [
+      {
+        "score": "-1",
+        "state": "cooking"
+      },
+      {
+        "score": "1",
+        "state": "justEating"
+      }
+    ]
+  }
+}
